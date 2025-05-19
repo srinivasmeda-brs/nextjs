@@ -6,8 +6,8 @@ import { FormField } from "@/app/components/form";
 
 interface ReusableFormProps {
   fields: FormField[];
-  onSubmit: (data: any) => void;
-  schema: z.ZodObject<any>;
+  onSubmit: (data: Record<string, unknown>) => void;
+  schema: z.ZodObject<z.ZodRawShape>;
 }
 
 const ReusableForm: React.FC<ReusableFormProps> = ({
@@ -15,8 +15,10 @@ const ReusableForm: React.FC<ReusableFormProps> = ({
   onSubmit,
   schema,
 }) => {
-  const [formData, setFormData] = React.useState<any>({});
-  const [formErrors, setFormErrors] = React.useState<any>({});
+  const [formData, setFormData] = React.useState<Record<string, unknown>>({});
+  const [formErrors, setFormErrors] = React.useState<Record<string, string>>(
+    {}
+  );
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -31,7 +33,7 @@ const ReusableForm: React.FC<ReusableFormProps> = ({
       setFormErrors(errors);
     } else {
       setFormErrors({});
-      const output: any = {};
+      const output: Record<string, unknown> = {};
       fields.forEach((field) => {
         let value = formData[field.name];
         if (!field.required && (value === "" || value === undefined)) {
@@ -50,7 +52,7 @@ const ReusableForm: React.FC<ReusableFormProps> = ({
     >
   ) => {
     const { name, value, type } = e.target;
-    let newValue: any = value;
+    let newValue: unknown = value;
 
     if (type === "checkbox") {
       newValue = (e.target as HTMLInputElement).checked;
@@ -62,10 +64,14 @@ const ReusableForm: React.FC<ReusableFormProps> = ({
 
     try {
       schema.pick({ [name]: true }).parse({ [name]: newValue });
-      setFormErrors((prev: any) => ({ ...prev, [name]: undefined }));
+      setFormErrors((prev) => {
+        const rest = { ...prev };
+        delete rest[name];
+        return rest;
+      });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        setFormErrors((prev: any) => ({
+        setFormErrors((prev) => ({
           ...prev,
           [name]: error.errors[0]?.message,
         }));
@@ -93,7 +99,16 @@ const ReusableForm: React.FC<ReusableFormProps> = ({
                       placeholder={field.placeholder}
                       required={field.required}
                       onChange={handleChange}
-                      value={formData[field.name] || ""}
+                      value={
+                        typeof formData[field.name] === "string" ||
+                        typeof formData[field.name] === "number" ||
+                        Array.isArray(formData[field.name])
+                          ? (formData[field.name] as
+                              | string
+                              | number
+                              | readonly string[])
+                          : ""
+                      }
                       rows={3}
                       className="border rounded px-2 py-1"
                     />
@@ -132,7 +147,16 @@ const ReusableForm: React.FC<ReusableFormProps> = ({
                     <select
                       name={field.name}
                       required={field.required}
-                      value={formData[field.name] || ""}
+                      value={
+                        typeof formData[field.name] === "string" ||
+                        typeof formData[field.name] === "number" ||
+                        Array.isArray(formData[field.name])
+                          ? (formData[field.name] as
+                              | string
+                              | number
+                              | readonly string[])
+                          : ""
+                      }
                       onChange={handleChange}
                       className="border rounded px-2 py-1"
                     >
@@ -152,7 +176,16 @@ const ReusableForm: React.FC<ReusableFormProps> = ({
                       name={field.name}
                       placeholder={field.placeholder}
                       required={field.required}
-                      value={formData[field.name] || ""}
+                      value={
+                        typeof formData[field.name] === "string" ||
+                        typeof formData[field.name] === "number" ||
+                        Array.isArray(formData[field.name])
+                          ? (formData[field.name] as
+                              | string
+                              | number
+                              | readonly string[])
+                          : ""
+                      }
                       onChange={handleChange}
                       className="border rounded px-2 py-1"
                     />

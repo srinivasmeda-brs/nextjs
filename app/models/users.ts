@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const UserSchema = z.object({
   name: z.string().nonempty("Name is required"),
-  email: z.string().email("Invalid email"),
+  email: z.string().email("Invalid email").optional().nullable(),
   password: z.string().nonempty("Password is required"),
   phone: z
     .string()
